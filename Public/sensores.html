@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Módulo de Sensores - AgroIntelli</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <!-- Font Manrope -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <!-- Material Symbols Outlined -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#34A853",
+                        "primary-light": "rgba(52, 168, 83, 0.1)",
+                        "secondary": "#4285F4",
+                        "danger": "#EA4335",
+                        "background-light": "#F7F9FC",
+                        "background-dark": "#112118",
+                        "text-light": "#333333",
+                        "text-dark": "#E0E0E0",
+                        "border-light": "#E0E0E0",
+                        "border-dark": "#4A4A4A",
+                        "card-light": "#FFFFFF",
+                        "card-dark": "#1F2F26",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 24px;
+            transition: all 0.15s ease-in-out;
+        }
+        body { transition: background-color 0.3s, color 0.3s; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 50; }
+        .modal-content { padding: 1.5rem; border-radius: 0.75rem; width: 90%; max-width: 400px; box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3); background-color: #FFFFFF; border: 1px solid var(--tw-colors-border-light); transition: background-color 0.3s, border-color 0.3s; position: relative; }
+        .dark .modal-content { background-color: #FFFFFF; border: 1px solid var(--tw-colors-border-light); }
+        #message-box { position: fixed; top: 20px; right: 20px; padding: 1rem; border-radius: 0.5rem; font-weight: 500; z-index: 60; min-width: 200px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: opacity 0.3s ease-in-out; }
+        #message-box.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        #message-box.info { background-color: #cce5ff; color: #004085; border: 1px solid #b8daff; }
+        .dropdown-menu { position: absolute; top: 100%; left: 0; width: 100%; min-width: 150px; margin-top: 0.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); z-index: 10; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+
+<body class="hidden font-display bg-background-light dark:bg-background-dark">
+
+
+
+
+    <!-- Contenedor para mensajes de feedback (Toast) -->
+    <div id="message-box" class="hidden" role="alert"></div>
+
+    <div class="flex min-h-screen w-full">
+
+        <!-- Sidebar -->
+      <!-- Sidebar -->
+  <aside class="w-64 flex flex-col border-r border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark p-4 shadow-lg">
+
+    <div class="flex items-center gap-3 mb-8">
+      <div id="user-avatar"
+     class="size-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm uppercase">
+  --
+</div>
+
+      <div>
+        <h1 id="user-name" class="text-base font-bold">Cargando...</h1>
+        <p id="user-role" class="text-sm text-gray-500 dark:text-gray-400">...</p>
+      </div>
+    </div>
+
+    <nav class="flex-1 space-y-1">
+     <a href="dashboard.html"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="text-sm font-medium">Dashboard</span>
+      </a>
+
+      <a href="sensores.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">sensors</span>
+        <span class="text-sm font-medium">Sensores</span>
+      </a>
+
+      <a href="control_riego.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">control_camera</span>
+        <span class="text-sm font-medium">Riego Manual</span>
+      </a>
+
+      <a href="alertas.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">notifications</span>
+        <span class="text-sm font-medium">Alertas</span>
+      </a>
+
+      <a href="reportes.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">assessment</span>
+        <span class="text-sm font-medium">Reportes</span>
+      </a>
+
+      <a href="agregasensor.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">add_circle</span>
+        <span class="text-sm font-medium">Agregar Sensor Nuevo</span>
+      </a>
+
+      <a href="configuracion.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">settings</span>
+        <span class="text-sm font-medium">Configuración</span>
+      </a>
+    </nav>
+
+    <div class="pt-4 border-t border-border-light dark:border-border-dark space-y-2">
+      <button id="dark-mode-toggle-sidebar"
+              class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition">
+        <span class="material-symbols-outlined" id="dark-mode-icon">light_mode</span>
+        <span class="text-sm font-medium" id="dark-mode-text">Modo Claro</span>
+      </button>
+
+      <button id="logout-btn"
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-danger hover:bg-danger/10 transition flex">
+        <span class="material-symbols-outlined">logout</span>
+        <span class="text-sm font-medium">Cerrar Sesión</span>
+      </button>
+    </div>
+
+  </aside>
+
+        <!-- Contenido Principal -->
+        <main class="flex-1 p-8 grid grid-cols-1 lg:grid-cols-3 gap-8 overflow-y-auto">
+
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                <div class="flex flex-wrap justify-between items-center gap-4">
+                    <div class="flex flex-col gap-1">
+                        <h1 class="text-3xl font-extrabold leading-tight tracking-tight text-text-light dark:text-text-dark">Módulo de Sensores</h1>
+                        <p class="text-gray-500 dark:text-gray-400 text-base font-normal leading-normal">Vista detallada de todos los sensores instalados.</p>
+                    </div>
+                    <button id="calibrate-sensor-btn" class="flex items-center justify-center gap-2 overflow-hidden rounded-lg h-11 px-5 bg-primary text-white text-sm font-bold leading-normal tracking-wide shadow-md hover:bg-green-700 transition-colors">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">tune</span>
+                        <span class="truncate">Calibrar Sensor</span>
+                    </button>
+                </div>
+
+                <!-- Filtros -->
+                <div class="flex gap-4 p-3 flex-wrap items-center bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm">
+                    <p class="text-sm font-semibold text-gray-600 dark:text-gray-400">Filtrar por:</p>
+                    <div class="relative">
+                        <button id="filter-type-btn" class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark pl-4 pr-3 text-sm font-medium leading-normal hover:border-primary transition-all">
+                            <span id="filter-type-text">Filtrar por tipo</span>
+                            <span class="material-symbols-outlined" style="font-size: 20px;">arrow_drop_down</span>
+                        </button>
+                        <div id="filter-type-dropdown" class="dropdown-menu absolute hidden bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark p-1">
+                            <a class="block px-3 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary-light hover:text-primary rounded-md cursor-pointer" data-filter="Todos">Todos</a>
+                            <a class="block px-3 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary-light hover:text-primary rounded-md cursor-pointer" data-filter="Humedad">Humedad</a>
+                            <a class="block px-3 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary-light hover:text-primary rounded-md cursor-pointer" data-filter="Temperatura">Temperatura</a>
+                            <a class="block px-3 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary-light hover:text-primary rounded-md cursor-pointer" data-filter="Luminosidad">Luminosidad</a>
+                            <a class="block px-3 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary-light hover:text-primary rounded-md cursor-pointer" data-filter="Lluvia">Lluvia</a>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <button id="filter-status-btn" class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark pl-4 pr-3 text-sm font-medium leading-normal hover:border-primary transition-all">
+                            <span id="filter-status-text">Filtrar por estado</span>
+                            <span class="material-symbols-outlined" style="font-size: 20px;">arrow_drop_down</span>
+                        </button>
+                        <div id="filter-status-dropdown" class="dropdown-menu absolute hidden bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark p-1">
+                            <a class="block px-3 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary-light hover:text-primary rounded-md cursor-pointer" data-filter="Todos">Todos</a>
+                            <a class="block px-3 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary-light hover:text-primary rounded-md cursor-pointer" data-filter="Activo">Activo</a>
+                            <a class="block px-3 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary-light hover:text-primary rounded-md cursor-pointer" data-filter="Fallo">Fallo</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de Sensores -->
+                <div class="w-full bg-card-light dark:bg-card-dark rounded-xl shadow-lg overflow-hidden border border-border-light dark:border-border-dark">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="border-b border-border-light dark:border-border-dark bg-gray-50 dark:bg-gray-800/20">
+                                <tr>
+                                    <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID Sensor</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tipo</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Última Lectura</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ubicación</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border-light dark:divide-border-dark" id="sensor-table-body">
+                                <!-- Tus filas de sensores siguen iguales -->
+                                <tr data-id="HUM-001" data-location="Sector A" data-type="Humedad" data-status="Activo" class="sensor-row hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-text-light dark:text-text-dark">HUM-001</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">Humedad</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center gap-2 rounded-full bg-green-100 dark:bg-green-900/50 px-3 py-1 text-xs font-semibold text-green-800 dark:text-green-300">
+                                            <span class="h-2 w-2 rounded-full bg-primary"></span>
+                                            Activo
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">45% - 2023-10-27 10:30 AM</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">Sector A</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <a class="text-primary hover:underline view-details-btn cursor-pointer" data-sensor-id="HUM-001" data-sensor-location="Sector A">Ver Detalles</a>
+                                    </td>
+                                </tr>
+                                <!-- ... resto de filas iguales ... -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Paginación -->
+                <div class="flex items-center justify-center pt-4">
+                    <nav class="flex items-center gap-2">
+                        <span class="flex size-9 items-center justify-center rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">chevron_left</span>
+                        </span>
+                        <a class="text-sm font-bold flex size-9 items-center justify-center text-white bg-primary rounded-lg transition-colors" href="#">1</a>
+                        <span class="flex size-9 items-center justify-center rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">chevron_right</span>
+                        </span>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Panel lateral de tiempo real (con placeholder bonito) -->
+            <aside class="lg:col-span-1 h-fit lg:sticky top-8">
+                <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-lg p-6 border border-border-light dark:border-border-dark flex flex-col gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="relative flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                        </span>
+                        <h2 class="text-lg font-bold text-text-light dark:text-text-dark">Datos en Tiempo Real</h2>
+                    </div>
+
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Datos del sensor <span id="real-time-sensor-id" class="font-semibold">HUM-001</span> en <span id="real-time-sensor-location" class="font-semibold">Sector A</span></p>
+
+                    <!-- Placeholder profesional (igual que en reportes) -->
+                    <div class="h-64 w-full bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center gap-3 border border-gray-200 dark:border-gray-700">
+                        <span class="material-symbols-outlined text-6xl text-gray-400">show_chart</span>
+                        <p class="text-gray-500 dark:text-gray-400 font-medium">Gráfico de datos en preparación</p>
+                        <p class="text-sm text-gray-400">Pronto tendrás el histórico completo aquí</p>
+                    </div>
+
+                    <div class="flex justify-between items-baseline pt-4 border-t border-border-light dark:border-border-dark">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Última actualización:</span>
+                        <span class="text-sm font-bold text-text-light dark:text-text-dark" id="last-update">Hace 12 segundos</span>
+                    </div>
+                </div>
+            </aside>
+
+        </main>
+
+    </div>
+
+    <!-- Modal de Calibración (sin cambios) -->
+    <div id="calibration-modal" class="modal-overlay hidden" aria-modal="true" role="dialog">
+        <div class="modal-content">
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-danger transition-colors p-1 rounded-full">
+                <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+            </button>
+            <header class="border-b border-border-light pb-3 mb-4 text-center">
+                <h3 class="text-xl font-bold text-primary text-text-light">Iniciar Calibración</h3>
+            </header>
+            <div class="flex flex-col gap-4 flex-1 text-center">
+                <p class="text-sm text-gray-600">Selecciona el sensor que deseas calibrar y confirma la acción.</p>
+                <div class="flex flex-col gap-2 text-left">
+                    <label class="text-sm font-medium text-text-light" for="select-sensor-calib">Seleccionar Sensor</label>
+                    <select id="select-sensor-calib" class="w-full rounded-lg border-border-light bg-background-light text-text-light focus:ring-primary focus:border-primary">
+                        <option value="HUM-001">HUM-001 (Humedad)</option>
+                        <option value="TEMP-04B">TEMP-04B (Temperatura)</option>
+                        <option value="LUM-003">LUM-003 (Luminosidad)</option>
+                        <option value="RAIN-002">RAIN-002 (Lluvia)</option>
+                        <option value="HUM-005">HUM-005 (Humedad)</option>
+                        <option value="TEMP-001">TEMP-001 (Temperatura)</option>
+                    </select>
+                </div>
+            </div>
+            <footer class="flex justify-end gap-3 pt-4 border-t border-border-light mt-4">
+                <button id="cancel-calibration-btn" class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-transparent text-gray-600 text-sm font-bold hover:bg-black/5 transition-colors">
+                    <span class="truncate">Cancelar</span>
+                </button>
+                <button id="confirm-calibration-btn" class="flex min-w-[84px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold shadow-sm hover:bg-green-700 transition-colors">
+                    <span class="material-symbols-outlined text-base">tune</span>
+                    <span class="truncate">Calibrar</span>
+                </button>
+            </footer>
+        </div>
+    </div>
+
+    <script type="module">
+        // =====================
+// SESIÓN DE USUARIO
+// =====================
+document.addEventListener("DOMContentLoaded", () => {
+  const user = JSON.parse(localStorage.getItem("usuarioData"));
+
+  // Si no hay sesión → login
+  if (!user || !user.nombreCompleto || !user.rol) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  // Mostrar página (evita parpadeo)
+  document.body.classList.remove("hidden");
+
+  // Nombre y rol
+  const nameEl = document.getElementById("user-name");
+  const roleEl = document.getElementById("user-role");
+  const avatarEl = document.getElementById("user-avatar");
+
+  if (nameEl) nameEl.textContent = user.nombreCompleto;
+  if (roleEl) roleEl.textContent = user.rol;
+
+  // Iniciales del avatar
+  if (avatarEl) {
+    const partes = user.nombreCompleto.trim().split(" ");
+    let iniciales = partes[0][0];
+    if (partes.length > 1) {
+      iniciales += partes[partes.length - 1][0];
+    }
+    avatarEl.textContent = iniciales.toUpperCase();
+  }
+});
+
+        // Tu script original sigue igual (dark mode, filtros, modal, toast, etc.)
+        // Solo cambiamos el placeholder del gráfico
+
+        const setupDarkMode = () => {
+            const htmlElement = document.documentElement;
+            const toggleButton = document.getElementById('dark-mode-toggle-sidebar');
+            const iconElement = document.getElementById('dark-mode-icon');
+            const textElement = document.getElementById('dark-mode-text');
+
+            const userPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const currentMode = localStorage.getItem('theme') || (userPrefersDark ? 'dark' : 'light');
+
+            const applyTheme = (theme) => {
+                if (theme === 'dark') {
+                    htmlElement.classList.add('dark');
+                    iconElement.textContent = 'light_mode';
+                    textElement.textContent = 'Modo Claro';
+                } else {
+                    htmlElement.classList.remove('dark');
+                    iconElement.textContent = 'dark_mode';
+                    textElement.textContent = 'Modo Oscuro';
+                }
+                localStorage.setItem('theme', theme);
+            };
+            applyTheme(currentMode);
+            toggleButton.addEventListener('click', () => {
+                const newMode = htmlElement.classList.contains('dark') ? 'light' : 'dark';
+                applyTheme(newMode);
+            });
+        };
+        setupDarkMode();
+
+        async function logAction(actionType, details = {}) {
+            console.log(`[SIMULACIÓN] Acción registrada: ${actionType}`, details);
+            await new Promise(resolve => setTimeout(resolve, 800));
+            return true;
+        }
+
+        const messageBox = document.getElementById('message-box');
+        const sensorRows = document.querySelectorAll('.sensor-row');
+        const calibrateSensorBtn = document.getElementById('calibrate-sensor-btn');
+        const filterTypeBtn = document.getElementById('filter-type-btn');
+        const filterStatusBtn = document.getElementById('filter-status-btn');
+        const filterTypeText = document.getElementById('filter-type-text');
+        const filterStatusText = document.getElementById('filter-status-text');
+        const viewDetailsBtns = document.querySelectorAll('.view-details-btn');
+
+        const filterTypeDropdown = document.getElementById('filter-type-dropdown');
+        const filterStatusDropdown = document.getElementById('filter-status-dropdown');
+
+        const calibrationModal = document.getElementById('calibration-modal');
+        const closeCalibrationBtn = document.getElementById('close-modal-btn');
+        const cancelCalibrationBtn = document.getElementById('cancel-calibration-btn');
+        const confirmCalibrationBtn = document.getElementById('confirm-calibration-btn');
+        const selectSensorCalib = document.getElementById('select-sensor-calib');
+
+        let currentFilter = { type: 'Todos', status: 'Todos' };
+
+        function showMessage(message, type = 'info') {
+            const typeClasses = { 'success': 'success', 'info': 'info' };
+            messageBox.textContent = message;
+            messageBox.className = '';
+            messageBox.classList.add(typeClasses[type]);
+            messageBox.classList.remove('hidden');
+            setTimeout(() => messageBox.classList.add('hidden'), 5000);
+        }
+
+        function openModal(modalElement) { modalElement.classList.remove('hidden'); }
+        function closeModal(modalElement) { modalElement.classList.add('hidden'); }
+
+        function filterSensors() {
+            let visibleCount = 0;
+            sensorRows.forEach(row => {
+                const sensorType = row.dataset.type;
+                const sensorStatus = row.dataset.status;
+                const matchType = currentFilter.type === 'Todos' || sensorType === currentFilter.type;
+                const matchStatus = currentFilter.status === 'Todos' || sensorStatus === currentFilter.status;
+
+                if (matchType && matchStatus) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            filterTypeText.textContent = currentFilter.type !== 'Todos' ? `Tipo: ${currentFilter.type}` : 'Filtrar por tipo';
+            filterStatusText.textContent = currentFilter.status !== 'Todos' ? `Estado: ${currentFilter.status}` : 'Filtrar por estado';
+
+            if (currentFilter.type === 'Todos' && currentFilter.status === 'Todos') {
+                showMessage(`Mostrando todos los ${visibleCount} sensores.`, 'info');
+            } else {
+                let filterSummary = `Mostrando ${visibleCount} sensores`;
+                if (currentFilter.type !== 'Todos') filterSummary += ` de tipo ${currentFilter.type}`;
+                if (currentFilter.status !== 'Todos') filterSummary += ` con estado ${currentFilter.status}`;
+                showMessage(filterSummary + '.', 'info');
+            }
+        }
+
+        calibrateSensorBtn.addEventListener('click', () => openModal(calibrationModal));
+        closeCalibrationBtn.addEventListener('click', () => closeModal(calibrationModal));
+        cancelCalibrationBtn.addEventListener('click', () => closeModal(calibrationModal));
+        calibrationModal.addEventListener('click', (e) => {
+            if (e.target === calibrationModal) closeModal(calibrationModal);
+        });
+
+        confirmCalibrationBtn.addEventListener('click', async () => {
+            confirmCalibrationBtn.disabled = true;
+            confirmCalibrationBtn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">progress_activity</span> <span class="truncate">Calibrando...</span>';
+
+            const selectedSensor = selectSensorCalib.value;
+            const success = await logAction('Iniciar Calibración', { sensor: selectedSensor });
+
+            if (success) {
+                showMessage(`Calibración de ${selectedSensor} iniciada con éxito.`, 'success');
+                closeModal(calibrationModal);
+            } else {
+                showMessage(`Fallo al iniciar calibración de ${selectedSensor}.`, 'danger');
+            }
+
+            confirmCalibrationBtn.disabled = false;
+            confirmCalibrationBtn.innerHTML = '<span class="material-symbols-outlined text-base">tune</span> <span class="truncate">Calibrar</span>';
+        });
+
+        const toggleDropdown = (btn, dropdown) => {
+            [filterTypeDropdown, filterStatusDropdown].forEach(d => { if (d !== dropdown) d.classList.add('hidden'); });
+            dropdown.classList.toggle('hidden');
+        };
+
+        filterTypeBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleDropdown(filterTypeBtn, filterTypeDropdown); });
+        filterStatusBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleDropdown(filterStatusBtn, filterStatusDropdown); });
+
+        filterTypeDropdown.querySelectorAll('a').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentFilter.type = e.target.dataset.filter;
+                filterSensors();
+                filterTypeDropdown.classList.add('hidden');
+            });
+        });
+
+        filterStatusDropdown.querySelectorAll('a').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentFilter.status = e.target.dataset.filter;
+                filterSensors();
+                filterStatusDropdown.classList.add('hidden');
+            });
+        });
+
+        document.addEventListener('click', () => {
+            filterTypeDropdown.classList.add('hidden');
+            filterStatusDropdown.classList.add('hidden');
+        });
+
+        const realTimeSensorId = document.getElementById('real-time-sensor-id');
+        const realTimeSensorLocation = document.getElementById('real-time-sensor-location');
+        const lastUpdate = document.getElementById('last-update');
+
+        viewDetailsBtns.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sensorId = e.target.dataset.sensorId;
+                const sensorLocation = e.target.dataset.sensorLocation;
+                realTimeSensorId.textContent = sensorId;
+                realTimeSensorLocation.textContent = sensorLocation;
+                lastUpdate.textContent = 'Justo ahora';
+                showMessage(`Detalles de ${sensorId} cargados en el panel lateral.`, 'info');
+            });
+        });
+
+        filterSensors(); // Inicializar filtros
+
+        // =====================
+// CERRAR SESIÓN
+// =====================
+const logoutBtn = document.getElementById("logout-btn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    localStorage.clear();
+    window.location.replace("login.html");
+  });
+}
+
+// =====================
+// BLOQUEAR BOTÓN ATRÁS
+// =====================
+history.pushState(null, null, location.href);
+window.onpopstate = () => {
+  history.pushState(null, null, location.href);
+};
+
+// =====================
+// SIDEBAR ACTIVO SEGÚN PÁGINA
+// =====================
+const currentPage = window.location.pathname.split("/").pop();
+
+document.querySelectorAll("aside nav a").forEach(link => {
+  const linkPage = link.getAttribute("href");
+
+  if (linkPage === currentPage) {
+    link.classList.add(
+      "bg-primary/10",
+      "text-primary",
+      "font-semibold"
+    );
+  } else {
+    link.classList.remove(
+      "bg-primary/10",
+      "text-primary",
+      "font-semibold"
+    );
+  }
+});
+
+        
+    </script>
+    
+</body>
+</html>

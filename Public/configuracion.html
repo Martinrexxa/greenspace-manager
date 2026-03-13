@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configuración del Sistema - GreenSpace Manager</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Fuentes -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1"
+      rel="stylesheet"
+    />
+
+    <!-- Configuración de Tailwind -->
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#28A745",
+              secondary: "#007BFF",
+              danger: "#DC3545",
+              "background-light": "#F8F9FA",
+              "background-dark": "#181a1b",
+              "text-light": "#343A40",
+              "text-dark": "#E8E6E3",
+              "card-light": "#FFFFFF",
+              "card-dark": "#252829",
+              "border-light": "#DEE2E6",
+              "border-dark": "#373b3d",
+            },
+            fontFamily: {
+              sans: ["Manrope", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.75rem",
+              lg: "1rem",
+              xl: "1.25rem",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+      }
+      /* Toast personalizado */
+      #toast {
+        visibility: hidden;
+        min-width: 300px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 8px;
+        padding: 16px;
+        position: fixed;
+        z-index: 1000;
+        right: 30px;
+        bottom: 30px;
+        font-family: 'Manrope', sans-serif;
+        font-weight: 600;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      }
+      #toast.show {
+        visibility: visible;
+        transform: translateY(0);
+        opacity: 1;
+      }
+      #toast.success {
+        background-color: #28A745;
+      }
+      #toast.error {
+        background-color: #DC3545;
+      }
+
+      /* Modal styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1050;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+      }
+      .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 8px;
+      }
+      .dark .modal-content {
+        background-color: #252829;
+        color: #E8E6E3;
+      }
+    </style>
+  </head>
+<body class="font-sans bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">    <!-- Toast de notificación -->
+    <div id="toast">Configuración guardada correctamente</div>
+
+    <!-- Confirm Modal -->
+    <div id="confirm-modal" class="modal">
+      <div class="modal-content">
+        <p id="confirm-message"></p>
+        <div class="flex justify-end gap-3 mt-4">
+          <button id="confirm-cancel" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">Cancelar</button>
+          <button id="confirm-accept" class="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90">Aceptar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Modal -->
+    <div id="user-modal" class="modal">
+      <div class="modal-content">
+        <h2 id="user-modal-title" class="text-xl font-bold mb-4">Agregar Usuario</h2>
+        <form id="user-form">
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Nombre</label>
+           <input id="modal-user-name" type="text" class="w-full px-4 py-3 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:outline-none focus:ring-2 focus:ring-primary">
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Email</label>
+            <input id="user-email" type="email" class="w-full px-4 py-3 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:outline-none focus:ring-2 focus:ring-primary">
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Rol</label>
+            <select id="user-rol" class="w-full px-4 py-3 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:outline-none focus:ring-2 focus:ring-primary">
+              <option value="Administrador">Administrador</option>
+              <option value="Usuario">Usuario</option>
+            </select>
+          </div>
+          <div class="flex justify-end gap-3">
+            <button type="button" id="user-cancel" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">Cancelar</button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90">Agregar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="flex min-h-screen">
+
+      <!-- Sidebar -->
+      <aside class="w-64 flex flex-col border-r border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark p-4 shadow-lg">
+        <div class="flex items-center gap-3 mb-8">
+  <div id="user-avatar"
+       class="size-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm uppercase">
+    --
+  </div>
+
+  <div>
+    <h1 id="sidebar-user-name" class="text-base font-bold">Cargando...</h1>
+    <p id="sidebar-user-role" class="text-sm text-gray-500 dark:text-gray-400">...</p>
+  </div>
+</div>
+
+        <nav class="flex-1 space-y-1">
+  <a href="dashboard.html" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+    <span class="material-symbols-outlined">dashboard</span>
+    <span class="text-sm font-medium">Dashboard</span>
+  </a>
+
+  <a href="sensores.html" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+    <span class="material-symbols-outlined">sensors</span>
+    <span class="text-sm font-medium">Sensores</span>
+  </a>
+
+  <a href="control_riego.html" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+    <span class="material-symbols-outlined">control_camera</span>
+    <span class="text-sm font-medium">Riego Manual</span>
+  </a>
+
+  <a href="alertas.html" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+    <span class="material-symbols-outlined">notifications</span>
+    <span class="text-sm font-medium">Alertas</span>
+  </a>
+
+  <a href="reportes.html" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+    <span class="material-symbols-outlined">assessment</span>
+    <span class="text-sm font-medium">Reportes</span>
+  </a>
+
+  <a href="agregasensor.html" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+    <span class="material-symbols-outlined">add_circle</span>
+    <span class="text-sm font-medium">Agregar Sensor Nuevo</span>
+  </a>
+
+  <a href="configuracion.html" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+    <span class="material-symbols-outlined">settings</span>
+    <span class="text-sm font-medium">Configuración</span>
+  </a>
+</nav>
+
+        <div class="pt-4 border-t border-border-light dark:border-border-dark space-y-2">
+          <button id="dark-mode-toggle-sidebar" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition">
+            <span class="material-symbols-outlined" id="dark-mode-icon">light_mode</span>
+            <span class="text-sm font-medium" id="dark-mode-text">Modo Claro</span>
+          </button>
+         <button id="logout-btn"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg text-danger hover:bg-danger/10 transition flex">
+  <span class="material-symbols-outlined">logout</span>
+  <span class="text-sm font-medium">Cerrar Sesión</span>
+</button>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 p-6 lg:p-10">
+        <div class="max-w-7xl mx-auto">
+
+          <!-- Header -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10">
+            <h1 class="text-4xl font-black tracking-tight">Configuración del Sistema</h1>
+            <div class="flex gap-3">
+              <button id="discard-btn" class="px-6 h-11 rounded-lg bg-gray-200 dark:bg-gray-700 font-bold text-sm hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                Descartar Cambios
+              </button>
+              <button id="save-btn" class="px-6 h-11 rounded-lg bg-primary text-white font-bold text-sm hover:bg-primary/90 flex items-center gap-2 transition">
+                <span class="material-symbols-outlined text-lg">save</span>
+                Guardar Configuración
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- Columna Izquierda -->
+            <div class="lg:col-span-2 space-y-8">
+
+              <!-- Límites de Humedad -->
+              <div class="bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-xl p-6 shadow-sm">
+                <h3 class="text-xl font-bold flex items-center gap-3 mb-2">
+                  <span class="material-symbols-outlined text-primary">humidity_percentage</span>
+                  Límites de Humedad
+                </h3>
+                <p class="text-sm opacity-70 mb-6">Establece los umbrales de humedad del suelo para activar el riego automático.</p>
+                <div class="grid grid-cols-2 gap-6">
+                  <div>
+                    <label class="text-sm font-medium">Mínima (%)</label>
+                    <input id="min-humidity" type="number" value="35" min="0" max="100"
+                      class="mt-2 w-full px-4 py-3 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
+                  </div>
+                  <div>
+                    <label class="text-sm font-medium">Máxima (%)</label>
+                    <input id="max-humidity" type="number" value="75" min="0" max="100"
+                      class="mt-2 w-full px-4 py-3 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Conectividad -->
+              <div class="bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-xl p-6 shadow-sm">
+                <h3 class="text-xl font-bold flex items-center gap-3 mb-2">
+                  <span class="material-symbols-outlined text-primary">wifi</span>
+                  Conectividad
+                </h3>
+                <p class="text-sm opacity-70 mb-6">Configura la conexión de red del dispositivo de riego.</p>
+                <div class="grid grid-cols-2 gap-6">
+                  <div>
+                    <label class="text-sm font-medium">Nombre de red (SSID)</label>
+                    <input id="ssid" type="text" value="MiRedWiFi"
+                      class="mt-2 w-full px-4 py-3 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:outline-none focus:ring-2 focus:ring-primary transition">
+                  </div>
+                  <div class="relative">
+                    <label class="text-sm font-medium">Contraseña</label>
+                    <input id="wifi-pass" type="password" placeholder="••••••••"
+                      class="mt-2 w-full px-4 py-3 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:outline-none focus:ring-2 focus:ring-primary transition">
+                    <button id="toggle-password" type="button" class="absolute right-3 top-11 text-gray-500">
+                      <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                  </div>
+                </div>
+                <button id="apply-wifi-btn" class="mt-6 w-full h-11 rounded-lg bg-secondary text-white font-bold hover:bg-secondary/90 flex items-center justify-center gap-2 transition">
+                  <span class="material-symbols-outlined">wifi_find</span>
+                  Probar Conexión
+                </button>
+              </div>
+
+              <!-- Gestión de Usuarios -->
+              <div class="bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-xl p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-6">
+                  <h3 class="text-xl font-bold flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary">group</span>
+                    Gestión de Usuarios
+                  </h3>
+                  <button id="add-user-btn" class="bg-secondary hover:bg-secondary/90 text-white px-4 h-10 rounded-lg font-bold text-sm flex items-center gap-2 transition">
+                    <span class="material-symbols-outlined text-lg">add</span>
+                    Agregar Usuario
+                  </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                  <table class="w-full" id="user-table">
+                    <thead class="bg-gray-50 dark:bg-gray-800">
+                      <tr>
+                        <th class="text-left text-xs font-medium uppercase tracking-wider py-3 px-6 text-gray-500">Nombre</th>
+                        <th class="text-left text-xs font-medium uppercase tracking-wider py-3 px-6 text-gray-500">Email</th>
+                        <th class="text-left text-xs font-medium uppercase tracking-wider py-3 px-6 text-gray-500">Rol</th>
+                        <th class="py-3 px-6"></th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-light dark:divide-border-dark" id="user-tbody">
+                      <!-- Users will be rendered here -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Columna Derecha - Parámetros Hardware -->
+            <div>
+              <div class="bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-xl p-6 shadow-sm">
+                <h3 class="text-xl font-bold flex items-center gap-3 mb-6">
+                  <span class="material-symbols-outlined text-primary">memory</span>
+                  Parámetros del Hardware
+                </h3>
+
+                <div class="space-y-5">
+                  <div>
+                    <label class="text-sm font-medium">Dirección IP del Dispositivo</label>
+                    <input type="text" value="192.168.1.100" readonly class="mt-2 w-full px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-800 cursor-not-allowed">
+                  </div>
+                  <div>
+                    <label class="text-sm font-medium">Frecuencia de Lectura (segundos)</label>
+                    <input id="freq" type="number" value="60" min="10" max="3600"
+                      class="mt-2 w-full px-4 py-3 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:outline-none focus:ring-2 focus:ring-primary">
+                  </div>
+                  <div>
+                    <label class="text-sm font-medium">Firmware</label>
+                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">v1.2.3</p>
+                  </div>
+                  <div>
+                    <label class="text-sm font-medium">Última Sincronización</label>
+                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Hace 5 minutos</p>
+                  </div>
+
+                  <button id="restart-btn" class="mt-6 w-full h-11 rounded-lg border border-primary text-primary font-bold hover:bg-primary/10 flex items-center justify-center gap-2 transition">
+                    <span class="material-symbols-outlined">restart_alt</span>
+                    Reiniciar Dispositivo
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- JavaScript para hacer todo funcional -->
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+  // =========================
+  // SESIÓN / MOSTRAR PÁGINA
+  // =========================
+  const user = JSON.parse(localStorage.getItem("usuarioData"));
+
+  if (!user || !user.nombreCompleto || !user.rol) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  document.body.classList.remove("hidden");
+
+  // =========================
+  // USUARIO EN SIDEBAR
+  // =========================
+  const sidebarUserName = document.getElementById("sidebar-user-name");
+  const sidebarUserRole = document.getElementById("sidebar-user-role");
+  const sidebarAvatar = document.getElementById("user-avatar");
+
+  if (sidebarUserName) sidebarUserName.textContent = user.nombreCompleto;
+  if (sidebarUserRole) sidebarUserRole.textContent = user.rol;
+
+  if (sidebarAvatar) {
+    const partes = user.nombreCompleto.trim().split(" ");
+    let iniciales = partes[0][0];
+    if (partes.length > 1) {
+      iniciales += partes[partes.length - 1][0];
+    }
+    sidebarAvatar.textContent = iniciales.toUpperCase();
+  }
+
+  // =========================
+  // SIDEBAR ACTIVO
+  // =========================
+  const currentPage = location.pathname.split("/").pop();
+
+  document.querySelectorAll(".sidebar-link").forEach(link => {
+    if (link.getAttribute("href") === currentPage) {
+      link.classList.add("bg-primary/10", "text-primary", "font-semibold");
+    } else {
+      link.classList.remove("bg-primary/10", "text-primary", "font-semibold");
+    }
+  });
+
+  // =========================
+  // VALORES ORIGINALES
+  // =========================
+  let originalValues = {
+    minHumidity: document.getElementById("min-humidity").value,
+    maxHumidity: document.getElementById("max-humidity").value,
+    ssid: document.getElementById("ssid").value,
+    wifiPass: document.getElementById("wifi-pass").value,
+    freq: document.getElementById("freq").value
+  };
+
+  // =========================
+  // TOAST
+  // =========================
+  function showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.className = type;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 4000);
+  }
+
+  // =========================
+  // MODAL CONFIRM
+  // =========================
+  const confirmModal = document.getElementById("confirm-modal");
+  const confirmMessage = document.getElementById("confirm-message");
+  const confirmAccept = document.getElementById("confirm-accept");
+  const confirmCancel = document.getElementById("confirm-cancel");
+
+  let confirmCallback = null;
+
+  function showConfirm(message, callback) {
+    confirmMessage.textContent = message;
+    confirmModal.style.display = "block";
+    confirmCallback = callback;
+  }
+
+  confirmAccept.addEventListener("click", () => {
+    if (confirmCallback) confirmCallback(true);
+    confirmModal.style.display = "none";
+  });
+
+  confirmCancel.addEventListener("click", () => {
+    if (confirmCallback) confirmCallback(false);
+    confirmModal.style.display = "none";
+  });
+
+  // =========================
+  // GUARDAR CONFIG
+  // =========================
+  document.getElementById("save-btn").addEventListener("click", () => {
+    showConfirm("¿Seguro que quiere guardar la configuración?", (accepted) => {
+      if (accepted) {
+        showToast("Configuración guardada correctamente", "success");
+
+        originalValues.minHumidity = document.getElementById("min-humidity").value;
+        originalValues.maxHumidity = document.getElementById("max-humidity").value;
+        originalValues.ssid = document.getElementById("ssid").value;
+        originalValues.wifiPass = document.getElementById("wifi-pass").value;
+        originalValues.freq = document.getElementById("freq").value;
+      }
+    });
+  });
+
+  // =========================
+  // DESCARTAR CAMBIOS
+  // =========================
+  document.getElementById("discard-btn").addEventListener("click", () => {
+    showConfirm("¿Seguro que quiere descartar los cambios?", (accepted) => {
+      if (accepted) {
+        document.getElementById("min-humidity").value = originalValues.minHumidity;
+        document.getElementById("max-humidity").value = originalValues.maxHumidity;
+        document.getElementById("ssid").value = originalValues.ssid;
+        document.getElementById("wifi-pass").value = originalValues.wifiPass;
+        document.getElementById("freq").value = originalValues.freq;
+        showToast("Cambios descartados", "error");
+      }
+    });
+  });
+
+  // =========================
+  // REINICIAR DISPOSITIVO
+  // =========================
+  document.getElementById("restart-btn").addEventListener("click", () => {
+    showConfirm("¿Estás seguro de que deseas reiniciar el dispositivo?", (accepted) => {
+      if (accepted) {
+        showToast("Dispositivo reiniciado correctamente", "success");
+      }
+    });
+  });
+
+  // =========================
+  // TOGGLE PASSWORD WIFI
+  // =========================
+  document.getElementById("toggle-password").addEventListener("click", () => {
+    const passInput = document.getElementById("wifi-pass");
+    const icon = document.getElementById("toggle-password").querySelector("span");
+
+    if (passInput.type === "password") {
+      passInput.type = "text";
+      icon.textContent = "visibility_off";
+    } else {
+      passInput.type = "password";
+      icon.textContent = "visibility";
+    }
+  });
+
+  // =========================
+  // PROBAR CONEXIÓN
+  // =========================
+  document.getElementById("apply-wifi-btn").addEventListener("click", () => {
+    showToast("Conexión probada correctamente", "success");
+  });
+
+  // =========================
+  // GESTIÓN DE USUARIOS
+  // =========================
+  let users = [
+    { id: 1, name: "Admin Principal", email: "admin@riego.io", rol: "Administrador" },
+    { id: 2, name: "Juan Pérez", email: "juan.perez@example.com", rol: "Usuario" }
+  ];
+
+  let editingUserId = null;
+
+  const userModal = document.getElementById("user-modal");
+  const userModalTitle = document.getElementById("user-modal-title");
+  const userForm = document.getElementById("user-form");
+  const modalUserName = document.getElementById("modal-user-name");
+  const userEmail = document.getElementById("user-email");
+  const userRol = document.getElementById("user-rol");
+  const userCancel = document.getElementById("user-cancel");
+
+  function renderUsers() {
+    const tbody = document.getElementById("user-tbody");
+    tbody.innerHTML = "";
+
+    users.forEach(userItem => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="py-4 px-6 font-medium">${userItem.name}</td>
+        <td class="py-4 px-6 text-gray-600 dark:text-gray-400">${userItem.email}</td>
+        <td class="py-4 px-6 text-gray-600 dark:text-gray-400">${userItem.rol}</td>
+        <td class="py-4 px-6 text-right">
+          <button class="text-secondary font-semibold hover:underline edit-btn" data-id="${userItem.id}">
+            Editar
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.querySelectorAll(".edit-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const id = parseInt(e.target.dataset.id);
+        openUserModal("edit", id);
+      });
+    });
+  }
+
+  function openUserModal(mode, id = null) {
+    editingUserId = id;
+    userModalTitle.textContent = mode === "add" ? "Agregar Usuario" : "Editar Usuario";
+
+    if (mode === "edit") {
+      const selectedUser = users.find(u => u.id === id);
+      modalUserName.value = selectedUser.name;
+      userEmail.value = selectedUser.email;
+      userRol.value = selectedUser.rol;
+    } else {
+      modalUserName.value = "";
+      userEmail.value = "";
+      userRol.value = "Usuario";
+    }
+
+    userModal.style.display = "block";
+  }
+
+  userForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const newUser = {
+      name: modalUserName.value,
+      email: userEmail.value,
+      rol: userRol.value
+    };
+
+    if (editingUserId) {
+      const index = users.findIndex(u => u.id === editingUserId);
+      newUser.id = editingUserId;
+      users[index] = newUser;
+      showToast("Usuario editado correctamente", "success");
+    } else {
+      newUser.id = users.length + 1;
+      users.push(newUser);
+      showToast("Usuario agregado correctamente", "success");
+    }
+
+    renderUsers();
+    userModal.style.display = "none";
+  });
+
+  userCancel.addEventListener("click", () => {
+    userModal.style.display = "none";
+  });
+
+  document.getElementById("add-user-btn").addEventListener("click", () => {
+    openUserModal("add");
+  });
+
+  renderUsers();
+
+  // =========================
+  // MODO OSCURO
+  // =========================
+  const toggle = document.getElementById("dark-mode-toggle-sidebar");
+  const icon = document.getElementById("dark-mode-icon");
+  const text = document.getElementById("dark-mode-text");
+
+  toggle.addEventListener("click", () => {
+    document.documentElement.classList.toggle("dark");
+
+    if (document.documentElement.classList.contains("dark")) {
+      icon.textContent = "light_mode";
+      text.textContent = "Modo Claro";
+    } else {
+      icon.textContent = "dark_mode";
+      text.textContent = "Modo Oscuro";
+    }
+  });
+
+  // =========================
+  // LOGOUT
+  // =========================
+  const logoutBtn = document.getElementById("logout-btn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.replace("login.html");
+    });
+  }
+});
+
+// =========================
+// BLOQUEAR FLECHA ATRÁS
+// =========================
+history.pushState(null, null, location.href);
+window.onpopstate = () => {
+  history.pushState(null, null, location.href);
+};
+</script>
+  </body>
+</html>

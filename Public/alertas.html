@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alertas - GreenSpace Manager</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Fuente Manrope (exactamente la misma que en los otros módulos) -->
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1" rel="stylesheet" />
+
+  <!-- Configuración Tailwind -->
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#28A745",
+            secondary: "#007BFF",
+            danger: "#DC3545",
+            warning: "#FBBC05",
+            info: "#4285F4",
+            "background-light": "#F8F9FA",
+            "background-dark": "#181a1b",
+            "text-light": "#343A40",
+            "text-dark": "#E8E6E3",
+            "card-light": "#FFFFFF",
+            "card-dark": "#252829",
+            "border-light": "#DEE2E6",
+            "border-dark": "#373b3d",
+          },
+          fontFamily: {
+            sans: ["Manrope", "sans-serif"],
+          },
+          borderRadius: {
+            DEFAULT: "0.75rem",
+            lg: "1rem",
+            xl: "1.25rem",
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    }
+    #toast {
+      visibility: hidden;
+      min-width: 300px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1000;
+      right: 30px;
+      bottom: 30px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+    #toast.show {
+      visibility: visible;
+      transform: translateY(0);
+      opacity: 1;
+    }
+    #toast.success { background-color: #28A745; }
+    #toast.error   { background-color: #DC3545; }
+  </style>
+</head>
+<body class="font-sans bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark hidden">
+
+  <!-- Toast -->
+  <div id="toast">Mensaje</div>
+
+  <!-- Modal Confirmación -->
+  <div id="confirm-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+    <div class="bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
+      <h3 class="text-xl font-bold mb-4">¿Marcar como revisada?</h3>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Esta alerta será eliminada de la lista.</p>
+      <div class="flex gap-3 justify-end">
+        <button id="cancel-confirm" class="px-5 h-11 rounded-lg bg-gray-200 dark:bg-gray-700 font-medium hover:bg-gray-300 dark:hover:bg-gray-600">Cancelar</button>
+        <button id="accept-confirm" class="px-5 h-11 rounded-lg bg-primary text-white font-bold flex items-center gap-2 hover:bg-primary/90">
+          <span class="material-symbols-outlined text-lg">check</span>
+          Sí, marcar como revisada
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 flex flex-col border-r border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark p-4 shadow-lg">
+
+    <div class="flex items-center gap-3 mb-8">
+      <div id="user-avatar"
+     class="size-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm uppercase">
+  --
+</div>
+
+      <div>
+        <h1 id="user-name" class="text-base font-bold">Cargando...</h1>
+        <p id="user-role" class="text-sm text-gray-500 dark:text-gray-400">...</p>
+      </div>
+    </div>
+
+    <nav class="flex-1 space-y-1">
+      <a href="dashboard.html"
+   class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="text-sm font-medium">Dashboard</span>
+      </a>
+
+      <a href="sensores.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">sensors</span>
+        <span class="text-sm font-medium">Sensores</span>
+      </a>
+
+      <a href="control_riego.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">control_camera</span>
+        <span class="text-sm font-medium">Riego Manual</span>
+      </a>
+
+      <a href="alertas.html" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">notifications</span>
+        <span class="text-sm font-medium">Alertas</span>
+      </a>
+
+      <a href="reportes.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">assessment</span>
+        <span class="text-sm font-medium">Reportes</span>
+      </a>
+
+      <a href="agregasensor.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">add_circle</span>
+        <span class="text-sm font-medium">Agregar Sensor Nuevo</span>
+      </a>
+
+      <a href="configuracion.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">settings</span>
+        <span class="text-sm font-medium">Configuración</span>
+      </a>
+    </nav>
+
+    <div class="pt-4 border-t border-border-light dark:border-border-dark space-y-2">
+      <button id="dark-mode-toggle-sidebar"
+              class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition">
+        <span class="material-symbols-outlined" id="dark-mode-icon">light_mode</span>
+        <span class="text-sm font-medium" id="dark-mode-text">Modo Claro</span>
+      </button>
+
+      <button id="logout-btn"
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-danger hover:bg-danger/10 transition flex">
+        <span class="material-symbols-outlined">logout</span>
+        <span class="text-sm font-medium">Cerrar Sesión</span>
+      </button>
+    </div>
+
+  </aside>
+
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 p-6 lg:p-10">
+      <div class="max-w-7xl mx-auto">
+
+        <!-- Título -->
+        <div class="mb-10">
+          <h1 class="text-4xl font-black tracking-tight">Alertas del Sistema</h1>
+          <p class="text-gray-600 dark:text-gray-400 mt-2">Gestiona todas las notificaciones y advertencias</p>
+        </div>
+
+        <!-- Filtros (píldoras como en tu imagen) -->
+        <div class="flex flex-wrap gap-3 mb-8">
+          <button data-filter="Todas" class="filter-btn px-6 h-11 rounded-full bg-primary text-white font-bold shadow-sm">Todas</button>
+          <button data-filter="Crítica" class="filter-btn px-6 h-11 rounded-full bg-gray-200 dark:bg-gray-700 font-medium hover:bg-gray-300 dark:hover:bg-gray-600">Críticas</button>
+          <button data-filter="Advertencia" class="filter-btn px-6 h-11 rounded-full bg-gray-200 dark:bg-gray-700 font-medium hover:bg-gray-300 dark:hover:bg-gray-600">Advertencias</button>
+          <button data-filter="Informativa" class="filter-btn px-6 h-11 rounded-full bg-gray-200 dark:bg-gray-700 font-medium hover:bg-gray-300 dark:hover:bg-gray-600">Informativas</button>
+        </div>
+
+        <!-- Tabla de Alertas -->
+        <div class="bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-xl shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                  <th class="text-left text-xs font-medium uppercase tracking-wider py-4 px-6 text-gray-500">Alerta</th>
+                  <th class="text-left text-xs font-medium uppercase tracking-wider py-4 px-6 text-gray-500">Severidad</th>
+                  <th class="text-left text-xs font-medium uppercase tracking-wider py-4 px-6 text-gray-500">Fecha</th>
+                  <th class="py-4 px-6"></th>
+                </tr>
+              </thead>
+              <tbody id="alerts-body" class="divide-y divide-border-light dark:divide-border-dark">
+                <!-- Las alertas se generan con JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Mensaje cuando no hay alertas -->
+        <div id="no-alerts" class="hidden text-center py-20">
+          <div class="mx-auto w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center">
+            <span class="material-symbols-outlined text-6xl text-primary">task_alt</span>
+          </div>
+          <h3 class="mt-8 text-2xl font-bold">No hay alertas pendientes</h3>
+          <p class="mt-2 text-gray-600 dark:text-gray-400">Todo funcionando correctamente</p>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Datos de alertas
+    const alerts = [
+      { title: "Fallo de alimentación", desc: "Controlador principal sin energía", severity: "Crítica", date: "10 abr 2024, 08:15", icon: "power_off", color: "danger" },
+      { title: "Humedad baja detectada", desc: "Zona 2 necesita riego", severity: "Advertencia", date: "10 abr 2024, 07:30", icon: "humidity_low", color: "warning" },
+      { title: "Sensor sin datos", desc: "Sensor LUM-003 sin reportar", severity: "Informativa", date: "9 abr 2024, 23:00", icon: "sensors_off", color: "info" },
+    ];
+
+    const tbody = document.getElementById('alerts-body');
+
+    function renderAlerts(filter = "Todas") {
+      tbody.innerHTML = "";
+      const filtered = alerts.filter(a => filter === "Todas" || a.severity === filter);
+
+      if (filtered.length === 0) {
+        document.getElementById('no-alerts').classList.remove('hidden');
+        return;
+      }
+
+      document.getElementById('no-alerts').classList.add('hidden');
+
+      filtered.forEach(a => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50 dark:hover:bg-white/5 transition";
+        tr.innerHTML = `
+          <td class="py-5 px-6">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-${a.color === 'danger' ? 'red' : a.color === 'warning' ? 'yellow' : 'blue'}-100 dark:bg-${a.color}-900/30 flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl text-${a.color}">${a.icon}</span>
+              </div>
+              <div>
+                <div class="font-semibold">${a.title}</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">${a.desc}</div>
+              </div>
+            </div>
+          </td>
+          <td class="py-5 px-6">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-${a.color}-100 text-${a.color} dark:bg-${a.color}-900/30">${a.severity}</span>
+          </td>
+          <td class="py-5 px-6 text-sm text-gray-600 dark:text-gray-400">${a.date}</td>
+          <td class="py-5 px-6 text-right">
+            <button class="mark-reviewed-btn text-sm font-semibold text-primary hover:underline">Marcar como revisada</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Re-asignar eventos de "marcar como revisada"
+      document.querySelectorAll('.mark-reviewed-btn').forEach(btn => {
+        btn.onclick = () => {
+          rowToDelete = btn.closest('tr');
+          document.getElementById('confirm-modal').classList.remove('hidden');
+        };
+      });
+    }
+
+    // Filtros funcionando al 100%
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.filter-btn').forEach(b => {
+          b.classList.remove('bg-primary', 'text-white');
+          b.classList.add('bg-gray-200', 'dark:bg-gray-700');
+        });
+        btn.classList.add('bg-primary', 'text-white');
+        btn.classList.remove('bg-gray-200', 'dark:bg-gray-700');
+        renderAlerts(btn.dataset.filter);
+      };
+    });
+
+    // Confirmación
+    let rowToDelete = null;
+    document.getElementById('cancel-confirm').onclick = () => {
+      document.getElementById('confirm-modal').classList.add('hidden');
+      rowToDelete = null;
+    };
+    document.getElementById('accept-confirm').onclick = () => {
+      if (rowToDelete) {
+        rowToDelete.remove();
+        showToast('Alerta marcada como revisada', 'success');
+        if (document.querySelectorAll('#alerts-body tr').length === 0) {
+          document.getElementById('no-alerts').classList.remove('hidden');
+        }
+      }
+      document.getElementById('confirm-modal').classList.add('hidden');
+      rowToDelete = null;
+    };
+
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.className = type;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    // Modo oscuro
+    const toggle = document.getElementById('dark-mode-toggle-sidebar');
+    const icon = document.getElementById('dark-mode-icon');
+    const text = document.getElementById('dark-mode-text');
+    toggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      if (document.documentElement.classList.contains('dark')) {
+        icon.textContent = 'light_mode';
+        text.textContent = 'Modo Claro';
+      } else {
+        icon.textContent = 'dark_mode';
+        text.textContent = 'Modo Oscuro';
+      }
+    });
+
+    // Cargar todas al inicio
+    renderAlerts("Todas");
+  </script>
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const user = JSON.parse(localStorage.getItem("usuarioData"));
+
+  // 🚫 SIN SESIÓN → LOGIN (sin parpadeos ni volver atrás)
+  if (!user || !user.nombreCompleto || !user.rol) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  // 👀 Mostrar página
+  document.body.classList.remove("hidden");
+
+  // 👤 Nombre y rol
+  document.getElementById("user-name").textContent = user.nombreCompleto;
+  document.getElementById("user-role").textContent = user.rol;
+
+  // 🧠 Avatar con iniciales
+  const avatar = document.getElementById("user-avatar");
+  const partes = user.nombreCompleto.trim().split(" ");
+  let iniciales = partes[0][0];
+  if (partes.length > 1) iniciales += partes.at(-1)[0];
+  avatar.textContent = iniciales.toUpperCase();
+
+  // 📌 Sidebar activo automático
+  const currentPage = location.pathname.split("/").pop();
+  document.querySelectorAll(".sidebar-link").forEach(link => {
+    if (link.getAttribute("href") === currentPage) {
+      link.classList.add("bg-primary/10", "text-primary", "font-semibold");
+    }
+  });
+});
+
+// 🚪 LOGOUT REAL (NO vuelve atrás)
+document.getElementById("logout-btn").addEventListener("click", () => {
+  localStorage.clear();
+  window.location.replace("login.html");
+});
+
+// ⛔ BLOQUEAR FLECHA ATRÁS
+history.pushState(null, null, location.href);
+window.onpopstate = () => {
+  history.pushState(null, null, location.href);
+};
+</script>
+
+</body>
+</html>

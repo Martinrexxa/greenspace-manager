@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Riego Manual - GreenSpace Manager</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1" rel="stylesheet" />
+
+  <!-- Configuración Tailwind -->
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#28A745",
+            secondary: "#007BFF",
+            danger: "#DC3545",
+            "background-light": "#F8F9FA",
+            "background-dark": "#181a1b",
+            "text-light": "#343A40",
+            "text-dark": "#E8E6E3",
+            "card-light": "#FFFFFF",
+            "card-dark": "#252829",
+            "border-light": "#DEE2E6",
+            "border-dark": "#373b3d",
+          },
+          fontFamily: {
+            sans: ["Manrope", "sans-serif"],
+          },
+          borderRadius: {
+            DEFAULT: "0.75rem",
+            lg: "1rem",
+            xl: "1.25rem",
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    }
+    #toast {
+      visibility: hidden;
+      min-width: 300px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1000;
+      right: 30px;
+      bottom: 30px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+    #toast.show { visibility: visible; transform: translateY(0); opacity: 1; }
+    #toast.success { background-color: #28A745; }
+    #toast.error   { background-color: #DC3545; }
+    #toast.info    { background-color: #007BFF; }
+  </style>
+</head>
+<body class="font-sans bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark hidden">
+
+  <!-- Toast -->
+  <div id="toast">Mensaje</div>
+
+  <div class="flex min-h-screen">
+
+   <!-- Sidebar -->
+  <aside class="w-64 flex flex-col border-r border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark p-4 shadow-lg">
+
+    <div class="flex items-center gap-3 mb-8">
+      <div id="user-avatar"
+     class="size-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm uppercase">
+  --
+</div>
+
+      <div>
+        <h1 id="user-name" class="text-base font-bold">Cargando...</h1>
+        <p id="user-role" class="text-sm text-gray-500 dark:text-gray-400">...</p>
+      </div>
+    </div>
+
+    <nav class="flex-1 space-y-1">
+      <a href="dashboard.html" data-page="dashboard"
+   class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg">
+
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="text-sm font-medium">Dashboard</span>
+      </a>
+
+      <a href="sensores.html"
+   class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg">
+        <span class="material-symbols-outlined">sensors</span>
+        <span class="text-sm font-medium">Sensores</span>
+      </a>
+
+    <a href="control_riego.html"
+   class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+
+        <span class="material-symbols-outlined">control_camera</span>
+        <span class="text-sm font-medium">Riego Manual</span>
+      </a>
+
+      <a href="alertas.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">notifications</span>
+        <span class="text-sm font-medium">Alertas</span>
+      </a>
+
+      <a href="reportes.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">assessment</span>
+        <span class="text-sm font-medium">Reportes</span>
+      </a>
+
+      <a href="agregasensor.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">add_circle</span>
+        <span class="text-sm font-medium">Agregar Sensor Nuevo</span>
+      </a>
+
+      <a href="configuracion.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+        <span class="material-symbols-outlined">settings</span>
+        <span class="text-sm font-medium">Configuración</span>
+      </a>
+    </nav>
+
+    <div class="pt-4 border-t border-border-light dark:border-border-dark space-y-2">
+      <button id="dark-mode-toggle-sidebar"
+              class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition">
+        <span class="material-symbols-outlined" id="dark-mode-icon">light_mode</span>
+        <span class="text-sm font-medium" id="dark-mode-text">Modo Claro</span>
+      </button>
+
+      <button id="logout-btn"
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-danger hover:bg-danger/10 transition flex">
+        <span class="material-symbols-outlined">logout</span>
+        <span class="text-sm font-medium">Cerrar Sesión</span>
+      </button>
+    </div>
+
+  </aside>
+    <!-- Main Content -->
+    <main class="flex-1 p-6 lg:p-10">
+      <div class="max-w-7xl mx-auto">
+
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10">
+          <div>
+            <h1 class="text-4xl font-black tracking-tight">Riego Manual</h1>
+            <p class="text-gray-600 dark:text-gray-400 mt-2">Controla el riego de forma inmediata en cada zona</p>
+          </div>
+          <div class="flex gap-3">
+            <button id="start-manual-btn" class="h-11 px-6 rounded-lg bg-secondary text-white font-bold flex items-center gap-2 hover:bg-secondary/90 transition">
+              <span class="material-symbols-outlined text-lg">play_circle</span>
+              Iniciar Riego
+            </button>
+            <button id="stop-manual-btn" class="h-11 px-6 rounded-lg bg-danger text-white font-bold flex items-center gap-2 hover:bg-danger/90 transition">
+              <span class="material-symbols-outlined text-lg">stop_circle</span>
+              Detener Todo
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          <!-- Zonas de Riego -->
+          <div class="lg:col-span-2 space-y-6">
+            <h2 class="text-2xl font-bold">Zonas Activas</h2>
+
+            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <!-- Zona 1 -->
+              <div class="bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-xl p-6 shadow-sm">
+                <div class="flex justify-between items-start mb-4">
+                  <h3 class="text-xl font-bold">Zona 1</h3>
+                  <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">
+                    <span class="w-2 h-2 rounded-full bg-primary"></span>
+                    Activo
+                  </span>
+                </div>
+                <div class="space-y-3 text-sm">
+                  <div><span class="opacity-70">Humedad actual:</span> <strong>65%</strong></div>
+                  <div><span class="opacity-70">Último riego:</span> <strong>Hoy 08:00 (15 min)</strong></div>
+                </div>
+              </div>
+
+              <!-- Zona 2 -->
+              <div class="bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-xl p-6 shadow-sm">
+                <div class="flex justify-between items-start mb-4">
+                  <h3 class="text-xl font-bold">Zona 2</h3>
+                  <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                    <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+                    Inactivo
+                  </span>
+                </div>
+                <div class="space-y-3 text-sm">
+                  <div><span class="opacity-70">Humedad actual:</span> <strong>42%</strong></div>
+                  <div><span class="opacity-70">Último riego:</span> <strong>Ayer 18:30 (10 min)</strong></div>
+                </div>
+              </div>
+
+              <!-- Zona 3 -->
+              <div class="bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-xl p-6 shadow-sm">
+                <div class="flex justify-between items-start mb-4">
+                  <h3 class="text-xl font-bold">Zona 3</h3>
+                  <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
+                    <span class="w-2 h-2 rounded-full bg-secondary"></span>
+                    Programado
+                  </span>
+                </div>
+                <div class="space-y-3 text-sm">
+                  <div><span class="opacity-70">Humedad actual:</span> <strong>38%</strong></div>
+                  <div><span class="opacity-70">Próximo riego:</span> <strong>Hoy 18:00</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Programación Automática (¡AHORA EXACTAMENTE COMO TU FOTO!) -->
+          <div class="lg:col-span-1">
+            <div class="bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-xl p-6 shadow-sm">
+              <h2 class="text-xl font-bold mb-6">Programar Riego Automático</h2>
+
+              <!-- Tabs -->
+              <div class="flex gap-2 mb-6 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+                <button id="tab-tiempo-btn" class="flex-1 py-3 px-6 rounded-lg font-bold text-white bg-primary shadow-sm">
+                  Por Tiempo
+                </button>
+                <button id="tab-condicion-btn" class="flex-1 py-3 px-6 rounded-lg font-medium text-gray-600 dark:text-gray-400">
+                  Por Condición
+                </button>
+              </div>
+
+              <!-- Por Tiempo -->
+              <div id="content-tiempo">
+                <div class="space-y-6">
+                  <div>
+                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Hora de inicio</label>
+                    <div class="mt-2 relative">
+                      <input type="text" readonly value="06:00 AM" class="w-full px-4 py-4 pr-12 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-center font-medium text-lg" />
+                      <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">schedule</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Duración (minutos)</label>
+                    <input type="number" value="20" min="1" class="mt-2 w-full px-4 py-4 text-center text-lg font-medium bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Por Condición -->
+              <div id="content-condicion" class="hidden">
+                <div class="space-y-4">
+                  <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Humedad mínima para activar (%)</label>
+                  <input type="number" value="40" min="1" max="100" class="w-full px-4 py-4 text-center text-lg font-medium bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" />
+                  <p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
+                    Se activará automáticamente si la humedad baja de este valor
+                  </p>
+                </div>
+              </div>
+
+              <!-- Días de la semana -->
+              <div class="mt-8">
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Seleccionar días</p>
+                <div class="grid grid-cols-7 gap-3">
+                  <button class="day-btn h-12 w-12 rounded-full font-bold text-white bg-primary">D</button>
+                  <button class="day-btn h-12 w-12 rounded-full font-bold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800">L</button>
+                  <button class="day-btn h-12 w-12 rounded-full font-bold text-white bg-primary">M</button>
+                  <button class="day-btn h-12 w-12 rounded-full font-bold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800">M</button>
+                  <button class="day-btn h-12 w-12 rounded-full font-bold text-white bg-primary">J</button>
+                  <button class="day-btn h-12 w-12 rounded-full font-bold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800">V</button>
+                  <button class="day-btn h-12 w-12 rounded-full font-bold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800">S</button>
+                </div>
+              </div>
+
+              <!-- Botones finales -->
+              <div class="flex gap-3 mt-8">
+                <button class="flex-1 h-12 rounded-xl border border-gray-300 dark:border-gray-600 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                  Cancelar
+                </button>
+                <button id="save-schedule-btn" class="flex-1 h-12 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 flex items-center justify-center gap-2 transition">
+                  <span class="material-symbols-outlined text-lg">event_available</span>
+                  Guardar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Iniciar Riego -->
+  <div id="start-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+    <div class="bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
+      <h3 class="text-xl font-bold mb-4">Iniciar Riego Manual</h3>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Selecciona la zona y duración</p>
+      <div class="space-y-4">
+        <select class="w-full px-4 py-3 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:outline-none focus:ring-2 focus:ring-primary">
+          <option>Zona 1</option><option>Zona 2</option><option>Zona 3</option>
+        </select>
+        <input type="number" placeholder="Duración (min)" value="15" class="w-full px-4 py-3 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button class="flex-1 h-11 rounded-lg bg-gray-200 dark:bg-gray-700 font-medium">Cancelar</button>
+        <button id="confirm-start-btn" class="flex-1 h-11 rounded-lg bg-primary text-white font-bold flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined">water_drop</span> Activar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detener Todo -->
+  <div id="stop-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+    <div class="bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
+      <h3 class="text-xl font-bold text-danger mb-4">Detener Todo el Riego</h3>
+      <p class="text-sm text-gray-600 dark:text-gray-400">¿Estás seguro? Esto detendrá inmediatamente todos los riegos activos.</p>
+      <div class="flex gap-3 mt-6">
+        <button class="flex-1 h-11 rounded-lg bg-gray-200 dark:bg-gray-700 font-medium">Cancelar</button>
+        <button id="confirm-stop-btn" class="flex-1 h-11 rounded-lg bg-danger text-white font-bold flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined">stop</span> Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <script>
+    function showToast(msg, type = 'info') {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.className = type;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    // Modales
+    document.getElementById('start-manual-btn').onclick = () => document.getElementById('start-modal').classList.remove('hidden');
+    document.getElementById('stop-manual-btn').onclick = () => document.getElementById('stop-modal').classList.remove('hidden');
+    document.querySelectorAll('#start-modal, #stop-modal').forEach(m => {
+      m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); });
+    });
+    document.querySelectorAll('button').forEach(b => {
+      if (b.textContent.trim() === 'Cancelar') b.onclick = () => b.closest('.fixed').classList.add('hidden');
+    });
+
+    document.getElementById('confirm-start-btn').onclick = () => {
+      showToast('Riego manual iniciado correctamente', 'success');
+      document.getElementById('start-modal').classList.add('hidden');
+    };
+    document.getElementById('confirm-stop-btn').onclick = () => {
+      showToast('Todos los riegos detenidos', 'success');
+      document.getElementById('stop-modal').classList.add('hidden');
+    };
+
+    // Tabs
+    document.getElementById('tab-tiempo-btn').onclick = () => {
+      document.getElementById('tab-tiempo-btn').classList.add('bg-primary', 'text-white', 'shadow-sm');
+      document.getElementById('tab-condicion-btn').classList.remove('bg-primary', 'text-white', 'shadow-sm');
+      document.getElementById('content-tiempo').classList.remove('hidden');
+      document.getElementById('content-condicion').classList.add('hidden');
+    };
+    document.getElementById('tab-condicion-btn').onclick = () => {
+      document.getElementById('tab-condicion-btn').classList.add('bg-primary', 'text-white', 'shadow-sm');
+      document.getElementById('tab-tiempo-btn').classList.remove('bg-primary', 'text-white', 'shadow-sm');
+      document.getElementById('content-condicion').classList.remove('hidden');
+      document.getElementById('content-tiempo').classList.add('hidden');
+    };
+
+    // Días (toggle)
+    document.querySelectorAll('.day-btn').forEach(btn => {
+      btn.onclick = () => {
+        btn.classList.toggle('bg-primary');
+        btn.classList.toggle('text-white');
+        btn.classList.toggle('bg-gray-100');
+        btn.classList.toggle('dark:bg-gray-800');
+        btn.classList.toggle('text-gray-600');
+        btn.classList.toggle('dark:text-gray-400');
+      };
+    });
+
+    // Guardar programación
+    document.getElementById('save-schedule-btn').onclick = () => showToast('Programación guardada correctamente', 'success');
+
+    // Dark mode
+    const toggle = document.getElementById('dark-mode-toggle-sidebar');
+    const icon = document.getElementById('dark-mode-icon');
+    const text = document.getElementById('dark-mode-text');
+    toggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      icon.textContent = document.documentElement.classList.contains('dark') ? 'light_mode' : 'dark_mode';
+      text.textContent = document.documentElement.classList.contains('dark') ? 'Modo Claro' : 'Modo Oscuro';
+    });
+    
+  </script>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const user = JSON.parse(localStorage.getItem("usuarioData"));
+
+  if (!user || !user.nombreCompleto || !user.rol) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  document.body.classList.remove("hidden");
+
+  document.getElementById("user-name").textContent = user.nombreCompleto;
+  document.getElementById("user-role").textContent = user.rol;
+
+  const partes = user.nombreCompleto.trim().split(" ");
+  let iniciales = partes[0][0];
+  if (partes.length > 1) iniciales += partes.at(-1)[0];
+
+  document.getElementById("user-avatar").textContent = iniciales.toUpperCase();
+});
+</script>
+
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const user = JSON.parse(localStorage.getItem("usuarioData"));
+
+    // 🚫 SIN SESIÓN → LOGIN (SIN BACK)
+    if (!user || !user.nombreCompleto || !user.rol) {
+      window.location.replace("login.html");
+      return;
+    }
+
+    // ✅ MOSTRAR PÁGINA
+    document.body.classList.remove("hidden");
+
+    // 👤 NOMBRE Y ROL
+    document.getElementById("user-name").textContent = user.nombreCompleto;
+    document.getElementById("user-role").textContent = user.rol;
+
+    // 🧠 AVATAR
+    const avatar = document.getElementById("user-avatar");
+    const partes = user.nombreCompleto.trim().split(" ");
+    let iniciales = partes[0][0];
+    if (partes.length > 1) iniciales += partes.at(-1)[0];
+    avatar.textContent = iniciales.toUpperCase();
+
+    // 📌 SIDEBAR ACTIVO
+    const currentPage = location.pathname.split("/").pop();
+    document.querySelectorAll(".sidebar-link").forEach(link => {
+      if (link.getAttribute("href") === currentPage) {
+        link.classList.add("bg-primary/10", "text-primary", "font-semibold");
+      }
+    });
+  });
+
+  // 🚪 LOGOUT REAL (NO BACK)
+  document.getElementById("logout-btn").addEventListener("click", () => {
+    localStorage.clear();
+    window.location.replace("login.html");
+  });
+
+  // ⛔ BLOQUEAR BOTÓN ATRÁS
+  history.pushState(null, null, location.href);
+  window.onpopstate = () => {
+    history.pushState(null, null, location.href);
+  };
+</script>
+
+
+</body>
+</html>

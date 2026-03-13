@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Riego Inteligente - Reportes</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+  <!-- Tailwind config -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#1fdb6d",
+            "background-light": "#f6f8f7",
+            "background-dark": "#112118",
+            "card-light": "#ffffff",
+            "card-dark": "#1a2a22",
+            "border-light": "#e5e7eb",
+            "border-dark": "#374151",
+          },
+          fontFamily: {
+            display: ["Manrope", "sans-serif"]
+          },
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            full: "9999px"
+          }
+        },
+      },
+    }
+  </script>
+
+  <style>
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display min-h-screen transition-colors duration-300 hidden">
+  <div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+      <!-- Notificación Toast -->
+      <div id="toast" class="fixed top-6 right-6 z-50 hidden flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200">
+        <span class="material-symbols-outlined text-primary text-2xl">check_circle</span>
+        <p id="toast-message" class="font-medium">Filtros aplicados con éxito</p>
+      </div>
+
+      <div class="flex min-h-screen w-full">
+
+        <!-- Sidebar -->
+        <aside class="flex w-64 flex-col border-r border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark p-4 shrink-0 shadow-lg">
+          <div class="flex items-center gap-3 mb-8">
+
+  <div id="user-avatar"
+       class="size-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm uppercase">
+    --
+  </div>
+
+  <div>
+    <h1 id="user-name" class="text-base font-bold">Cargando...</h1>
+    <p id="user-role" class="text-sm text-gray-500 dark:text-gray-400">...</p>
+  </div>
+
+</div>
+
+          <nav class="flex flex-col gap-2 flex-1">
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors" href="dashboard.html">
+  <span class="material-symbols-outlined">dashboard</span>
+  <p class="text-sm font-semibold">Dashboard</p>
+</a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors" href="sensores.html">
+              <span class="material-symbols-outlined">sensors</span>
+              <p class="text-sm font-medium">Sensores</p>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors" href="control_riego.html">
+              <span class="material-symbols-outlined">control_camera</span>
+              <p class="text-sm font-medium">Riego Manual</p>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors" href="alertas.html">
+              <span class="material-symbols-outlined">notifications</span>
+              <p class="text-sm font-medium">Alertas</p>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-semibold" href="reportes.html">
+              <span class="material-symbols-outlined">assessment</span>
+              <p class="text-sm font-medium">Reportes</p>
+            </a> 
+                    <!-- AGREGAR SENSOR NUEVO - ahora sí con el fondo verde como Dashboard -->
+            <a href="agregasensor.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition">
+              <span class="material-symbols-outlined">add_circle</span>
+              <span class="text-sm font-medium">Agregar Sensor Nuevo</span>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors" href="configuracion.html">
+              <span class="material-symbols-outlined">settings</span>
+              <p class="text-sm font-medium">Configuración</p>
+            </a>
+          </nav>
+
+          <div class="pt-4 border-t border-border-light dark:border-border-dark mt-auto">
+            <button id="dark-mode-toggle" class="flex w-full items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+              <span class="material-symbols-outlined" id="dark-mode-icon">dark_mode</span>
+              <p class="text-sm font-medium" id="dark-mode-text">Modo Oscuro</p>
+            </button>
+            <button id="logout-btn" class="flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition w-full">
+  <span class="material-symbols-outlined">logout</span>
+  <span class="text-sm font-medium">Cerrar Sesión</span>
+</button>
+          </div>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main class="flex-1 px-4 sm:px-6 lg:px-10 py-8">
+          <div class="max-w-7xl mx-auto">
+
+            <!-- Título y exportación -->
+            <div class="flex flex-wrap justify-between items-center gap-4 mb-8">
+              <h1 class="text-3xl md:text-4xl font-black text-gray-900 dark:text-gray-100 tracking-tight">
+                Módulo de Reportes
+              </h1>
+              <div class="flex gap-3">
+                <button id="export-csv" class="flex items-center gap-2 px-4 h-10 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                  <span class="material-symbols-outlined">file_download</span>
+                  Descargar CSV
+                </button>
+                <button id="export-pdf" class="flex items-center gap-2 px-4 h-10 rounded-lg bg-primary text-gray-900 font-bold hover:bg-primary/90 transition">
+                  <span class="material-symbols-outlined">picture_as_pdf</span>
+                  Exportar a PDF
+                </button>
+              </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="border rounded-xl bg-white dark:bg-background-dark border-gray-200 dark:border-gray-800 p-6">
+              <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Filtros</h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <!-- Calendario con rango -->
+                <div class="col-span-1 md:col-span-2">
+                  <p class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Rango de Fecha</p>
+                  <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-card-dark">
+                    <div class="flex items-center justify-between mb-4">
+                      <button id="prev-month" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                      </button>
+                      <p id="current-month" class="font-bold text-lg">Octubre 2023</p>
+                      <button id="next-month" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                      </button>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-1 text-center text-sm">
+                      <div class="text-gray-500 font-bold">D</div>
+                      <div class="text-gray-500 font-bold">L</div>
+                      <div class="text-gray-500 font-bold">M</div>
+                      <div class="text-gray-500 font-bold">M</div>
+                      <div class="text-gray-500 font-bold">J</div>
+                      <div class="text-gray-500 font-bold">V</div>
+                      <div class="text-gray-500 font-bold">S</div>
+
+                      <div id="calendar-days" class="col-span-7 grid grid-cols-7 gap-1"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Zonas -->
+                <div>
+                  <p class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Zona</p>
+                  <div class="flex flex-wrap gap-2" id="zone-filters">
+                    <button class="zone-btn flex h-8 items-center px-4 rounded-full bg-primary text-gray-900 font-medium" data-zone="Todas">
+                      Todas las Zonas
+                    </button>
+                    <button class="zone-btn flex h-8 items-center px-4 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200" data-zone="Jardín">
+                      Zona A: Jardín
+                    </button>
+                    <button class="zone-btn flex h-8 items-center px-4 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200" data-zone="Césped">
+                      Zona B: Césped
+                    </button>
+                    <button class="zone-btn flex h-8 items-center px-4 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200" data-zone="Patio">
+                      Zona C: Patio
+                    </button>
+                  </div>
+
+                  <button id="apply-filters-btn" class="mt-6 w-full h-10 bg-primary text-gray-900 font-bold rounded-lg hover:bg-primary/90 transition">
+                    Aplicar Filtros
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Estadísticas y placeholders -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+              <div class="p-6 border rounded-xl bg-white dark:bg-card-dark border-gray-200 dark:border-gray-800 flex flex-col items-center text-center">
+                <h4 class="text-lg font-bold mb-4">Ahorro de Agua (%)</h4>
+                <div class="relative size-40">
+                  <svg class="size-full" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="16" fill="none" stroke="#e5e7eb" stroke-width="3" class="dark:stroke-gray-700"/>
+                    <circle cx="18" cy="18" r="16" fill="none" stroke="#1fdb6d" stroke-width="3" stroke-dasharray="88 100" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+                  </svg>
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="text-3xl font-black">88%</span>
+                  </div>
+                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-4">Eficiencia general del sistema</p>
+              </div>
+
+              <div class="p-6 border rounded-xl bg-white dark:bg-card-dark border-gray-200 dark:border-gray-800 lg:col-span-2">
+                <h4 class="text-lg font-bold mb-4">Historial de Consumo</h4>
+                <div class="w-full h-56 bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center gap-3">
+                  <span class="material-symbols-outlined text-6xl text-gray-400">show_chart</span>
+                  <p class="text-gray-500 dark:text-gray-400 font-medium">Gráfico de consumo en preparación</p>
+                  <p class="text-sm text-gray-400">Pronto tendrás el histórico completo aquí</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 mt-8">
+              <div class="p-6 border rounded-xl bg-white dark:bg-card-dark border-gray-200 dark:border-gray-800">
+                <h4 class="text-lg font-bold mb-4">Humedad Promedio por Zona</h4>
+                <div class="w-full h-64 bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center gap-3">
+                  <span class="material-symbols-outlined text-6xl text-gray-400">bar_chart</span>
+                  <p class="text-gray-500 dark:text-gray-400 font-medium">Gráfico de humedad en preparación</p>
+                  <p class="text-sm text-gray-400">Comparativa entre zonas disponible pronto</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Modal de confirmación -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+      <div class="bg-white dark:bg-card-dark rounded-xl p-8 max-w-md w-full shadow-2xl">
+        <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Confirmación</h3>
+        <p class="text-gray-600 dark:text-gray-300 mb-6 whitespace-pre-line" id="modal-message">Acción realizada.</p>
+        <div class="flex gap-4 justify-end">
+          <button id="modal-cancel" class="px-6 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+            Cancelar
+          </button>
+          <button id="modal-confirm" class="px-6 py-2 rounded-lg bg-primary text-gray-900 font-bold hover:bg-primary/90 transition">
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem("usuarioData"));
+
+// 🚫 SI NO HAY SESIÓN → LOGIN
+if (!user || !user.nombreCompleto || !user.rol) {
+  window.location.replace("login.html");
+  return;
+}
+
+// ✅ SESIÓN VÁLIDA → MOSTRAR PÁGINA
+document.body.classList.remove("hidden");
+      
+      
+
+if (user) {
+  document.getElementById("user-name").textContent = user.nombreCompleto;
+  document.getElementById("user-role").textContent = user.rol;
+
+  const avatar = document.getElementById("user-avatar");
+  const partes = user.nombreCompleto.trim().split(" ");
+  let iniciales = partes[0][0];
+
+  if (partes.length > 1) {
+    iniciales += partes[partes.length - 1][0];
+  }
+
+  avatar.textContent = iniciales.toUpperCase();
+}
+      // Modo oscuro
+      const darkModeToggle = document.getElementById('dark-mode-toggle');
+      const darkModeIcon = document.getElementById('dark-mode-icon');
+      const darkModeText = document.getElementById('dark-mode-text');
+
+      function toggleDarkMode() {
+        document.documentElement.classList.toggle('dark');
+        const isDark = document.documentElement.classList.contains('dark');
+        darkModeIcon.textContent = isDark ? 'light_mode' : 'dark_mode';
+        darkModeText.textContent = isDark ? 'Modo Claro' : 'Modo Oscuro';
+      }
+      darkModeToggle.addEventListener('click', toggleDarkMode);
+
+      // Toast notification
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toast-message');
+
+      function showToast(msg) {
+        toastMessage.textContent = msg;
+        toast.classList.remove('hidden');
+        toast.classList.add('animate-fade-in');
+        setTimeout(() => {
+          toast.classList.add('animate-fade-out');
+          setTimeout(() => {
+            toast.classList.add('hidden');
+            toast.classList.remove('animate-fade-in', 'animate-fade-out');
+          }, 500);
+        }, 3000);
+      }
+
+      // Modal de confirmación
+      const modal = document.getElementById('confirm-modal');
+      const modalMessage = document.getElementById('modal-message');
+      const modalCancel = document.getElementById('modal-cancel');
+      const modalConfirm = document.getElementById('modal-confirm');
+
+      let confirmAction = null;
+
+      function showConfirm(message, action) {
+        modalMessage.textContent = message;
+        confirmAction = action;
+        modal.classList.remove('hidden');
+      }
+
+      modalCancel.addEventListener('click', () => modal.classList.add('hidden'));
+      modalConfirm.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        if (confirmAction) confirmAction();
+      });
+
+      // Exportar CSV y PDF
+      document.getElementById('export-csv').addEventListener('click', () => {
+        showConfirm('Se generará y descargará el archivo CSV.', () => {
+          showToast('Descargando archivo CSV...');
+          // Aquí iría la lógica real de descarga
+        });
+      });
+
+      document.getElementById('export-pdf').addEventListener('click', () => {
+        showConfirm('Se generará y descargará el archivo PDF.', () => {
+          showToast('Generando y descargando PDF...');
+          // Aquí iría la lógica real de descarga
+        });
+      });
+
+      // Aplicar filtros con toast (sin alert)
+      document.getElementById('apply-filters-btn').addEventListener('click', () => {
+        const selectedZoneBtn = document.querySelector('.zone-btn.bg-primary');
+        const selectedZone = selectedZoneBtn ? selectedZoneBtn.getAttribute('data-zone') : 'Todas';
+
+        let fechaMsg = 'ningún rango';
+        if (startDate) {
+          fechaMsg = `${startDate.getDate()} de ${currentMonthEl.textContent}`;
+          if (endDate) fechaMsg += ` - ${endDate.getDate()} de ${currentMonthEl.textContent}`;
+        }
+
+        showConfirm(`Se aplicarán los siguientes filtros:\n\nZona: ${selectedZone}\nRango: ${fechaMsg}`, () => {
+          showToast('Filtros aplicados con éxito. Los datos se han actualizado.');
+          // Aquí iría la lógica real de recargar datos
+        });
+      });
+
+      // Selección de zonas
+      document.querySelectorAll('.zone-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.zone-btn').forEach(b => {
+            b.classList.remove('bg-primary', 'text-gray-900');
+            b.classList.add('bg-gray-100', 'dark:bg-gray-800', 'text-gray-800', 'dark:text-gray-200');
+          });
+          btn.classList.remove('bg-gray-100', 'dark:bg-gray-800', 'text-gray-800', 'dark:text-gray-200');
+          btn.classList.add('bg-primary', 'text-gray-900');
+        });
+      });
+
+      // Calendario con rango
+      const calendarDays = document.getElementById('calendar-days');
+      const currentMonthEl = document.getElementById('current-month');
+      const prevBtn = document.getElementById('prev-month');
+      const nextBtn = document.getElementById('next-month');
+
+      let currentDate = new Date(2023, 9, 1);
+      let startDate = null;
+      let endDate = null;
+
+      function renderCalendar() {
+        calendarDays.innerHTML = '';
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        currentMonthEl.textContent = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(currentDate);
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 0; i < firstDay; i++) {
+          const empty = document.createElement('div');
+          empty.className = 'h-10';
+          calendarDays.appendChild(empty);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const btn = document.createElement('button');
+          btn.className = 'date-btn h-10 w-full text-gray-800 dark:text-gray-200 hover:bg-primary/20 transition rounded-full';
+          btn.textContent = day;
+          btn.dataset.day = day;
+
+          btn.addEventListener('click', () => {
+            const clickedDate = new Date(year, month, day);
+
+            if (!startDate || (endDate && clickedDate < startDate)) {
+              startDate = clickedDate;
+              endDate = null;
+            } else if (startDate && !endDate && clickedDate > startDate) {
+              endDate = clickedDate;
+            } else {
+              startDate = clickedDate;
+              endDate = null;
+            }
+
+            updateRange();
+          });
+
+          calendarDays.appendChild(btn);
+        }
+
+        updateRange();
+      }
+
+      function updateRange() {
+        document.querySelectorAll('.date-btn').forEach(btn => {
+          const day = parseInt(btn.dataset.day);
+          const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+
+          btn.classList.remove('bg-primary', 'text-white', 'rounded-l-full', 'rounded-r-full', 'bg-primary/20');
+          btn.classList.add('rounded-full');
+
+          if (startDate && date.getTime() === startDate.getTime()) {
+            btn.classList.add('bg-primary', 'text-white');
+            if (endDate) btn.classList.add('rounded-l-full');
+          }
+
+          if (endDate && date.getTime() === endDate.getTime()) {
+            btn.classList.add('bg-primary', 'text-white');
+            btn.classList.add('rounded-r-full');
+          }
+
+          if (startDate && endDate && date > startDate && date < endDate) {
+            btn.classList.add('bg-primary/20');
+          }
+        });
+      }
+
+      prevBtn.addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+      });
+
+      nextBtn.addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+      });
+
+      renderCalendar();
+
+      // Animaciones para el toast
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .animate-fade-out { animation: fadeOut 0.4s ease-in forwards; }
+      `;
+      document.head.appendChild(style);
+    });
+    document.getElementById("logout-btn").addEventListener("click", () => {
+  localStorage.clear();
+  window.location.replace("login.html");
+});
+history.pushState(null, null, location.href);
+
+window.onpopstate = function () {
+  history.pushState(null, null, location.href);
+};
+  </script>
+</body>
+</html>

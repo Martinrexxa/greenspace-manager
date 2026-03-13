@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iniciar Sesión - GreenSpace Manager</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1" rel="stylesheet" />
+
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    }
+
+    /* Toast */
+   
+  </style>
+</head>
+
+<body class="font-sans bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+
+  <!-- Toast -->
+  
+
+  <div class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+    <!-- Fondo -->
+    <div class="absolute inset-0 bg-gradient-to-br from-green-100/20 to-blue-100/20 opacity-30"></div>
+
+    <!-- Contenedor principal -->
+    <div class="relative z-10 w-full max-w-md">
+
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-4xl text-green-600">sprout</span>
+        </div>
+        <h1 class="text-3xl font-black tracking-tight">GreenSpace Manager</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-2">Sistema de Riego Inteligente</p>
+      </div>
+
+      <!-- CARD LOGIN -->
+      <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-8 shadow-xl">
+
+        <form id="login-form" class="space-y-6">
+
+          <!-- Usuario -->
+          <div>
+            <label class="block text-sm font-medium mb-2">Usuario</label>
+            <div class="relative">
+              <input type="text" id="username" placeholder="Ingresa tu usuario" 
+                class="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 dark:border-gray-600
+                       bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500" 
+                required />
+              <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">person</span>
+            </div>
+          </div>
+
+          <!-- Contraseña -->
+          <div>
+            <label class="block text-sm font-medium mb-2">Contraseña</label>
+            <div class="relative">
+              <input type="password" id="password" placeholder="Ingresa tu contraseña" 
+                class="w-full px-4 py-3 pl-12 pr-12 rounded-lg border border-gray-300 dark:border-gray-600
+                       bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500" 
+                required />
+              <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">lock</span>
+
+              <!-- Toggle -->
+              <button type="button" id="toggle-password" 
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                <span class="material-symbols-outlined">visibility_off</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Botón -->
+          <button type="submit"
+            class="w-full h-12 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700
+                   flex items-center justify-center gap-2 shadow-lg transition-all">
+            <span class="material-symbols-outlined">login</span>
+            Iniciar Sesión
+          </button>
+
+        </form>
+
+        <div class="mt-6 text-center">
+          <a href="#" class="text-sm text-blue-600 hover:underline">¿Olvidaste tu contraseña?</a>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="mt-8 text-center">
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          © 2025 GreenSpace Manager — Sistema de Riego Inteligente
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- JS -->
+  <script>
+  // Toggle contraseña
+  document.getElementById('toggle-password').addEventListener('click', () => {
+    const passwordInput = document.getElementById('password');
+    const icon = document.querySelector('#toggle-password span');
+
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      icon.textContent = 'visibility';
+    } else {
+      passwordInput.type = 'password';
+      icon.textContent = 'visibility_off';
+    }
+  });
+
+  // LOGIN
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const usuario = document.getElementById('username').value.trim();
+    const contrasena = document.getElementById('password').value.trim();
+
+    if (!usuario || !contrasena) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos incompletos',
+        text: 'Por favor, completa todos los campos'
+      });
+      return;
+    }
+
+    try {
+      const res = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, contrasena })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        // Guardar usuario
+        localStorage.setItem('usuarioData', JSON.stringify(data.user));
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Sesión iniciada',
+          text: 'Bienvenido al sistema',
+          showConfirmButton: false,
+          timer: 1500,
+          timerProgressBar: true
+        }).then(() => {
+          window.location.href = 'dashboard.html';
+        });
+
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: data.message
+        });
+      }
+
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de conexión',
+        text: 'No se pudo conectar al servidor'
+      });
+      console.error(err);
+    }
+  });
+</script>
