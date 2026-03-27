@@ -211,10 +211,10 @@
     const user = JSON.parse(localStorage.getItem("usuarioData"));
 
     // 🚫 SIN SESIÓN → LOGIN (SIN PARPADEO)
-    if (!user || !user.nombreCompleto || !user.rol) {
-      window.location.replace("login.html");
-      return;
-    }
+   if (!user || !user.nombreCompleto || !user.rol) {
+  window.location.replace("/");
+  return;
+}
 
     // ✅ SESIÓN VÁLIDA → MOSTRAR DASHBOARD
     document.body.classList.remove("hidden");
@@ -236,10 +236,10 @@
   });
 
   // 🚪 LOGOUT REAL (NO back)
-  document.getElementById("logout-btn").addEventListener("click", () => {
-    localStorage.clear();
-    window.location.replace("login.html");
-  });
+ document.getElementById("logout-btn").addEventListener("click", () => {
+  localStorage.clear();
+  window.location.replace("/");
+});
 
   // ⛔ BLOQUEAR BOTÓN ATRÁS
   history.pushState(null, null, location.href);

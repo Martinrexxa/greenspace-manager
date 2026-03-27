@@ -339,7 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 🚫 SIN SESIÓN → LOGIN (sin parpadeos ni volver atrás)
   if (!user || !user.nombreCompleto || !user.rol) {
-    window.location.replace("login.html");
+    window.location.replace("/");
     return;
   }
 
@@ -369,7 +369,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // 🚪 LOGOUT REAL (NO vuelve atrás)
 document.getElementById("logout-btn").addEventListener("click", () => {
   localStorage.clear();
-  window.location.replace("login.html");
+  window.location.replace("/");
 });
 
 // ⛔ BLOQUEAR FLECHA ATRÁS

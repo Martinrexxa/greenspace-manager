@@ -372,7 +372,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const user = JSON.parse(localStorage.getItem("usuarioData"));
 
   if (!user || !user.nombreCompleto || !user.rol) {
-    window.location.replace("login.html");
+    window.location.replace("/");
     return;
   }
 
@@ -649,7 +649,7 @@ document.addEventListener("DOMContentLoaded", () => {
     logoutBtn.addEventListener("click", () => {
       localStorage.clear();
       sessionStorage.clear();
-      window.location.replace("login.html");
+      window.location.replace("/");
     });
   }
 });

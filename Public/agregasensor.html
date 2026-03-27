@@ -208,9 +208,9 @@
 
     // Sin sesión -> login
     if (!user || !user.nombreCompleto || !user.rol) {
-      window.location.replace("login.html");
-      return;
-    }
+  window.location.replace("/");
+  return;
+}
 
     // Mostrar página
     document.body.classList.remove("hidden");
@@ -260,7 +260,7 @@
     if (logoutBtn) {
       logoutBtn.addEventListener("click", () => {
         localStorage.clear();
-        window.location.replace("login.html");
+        window.location.replace("/");
       });
     }
   });

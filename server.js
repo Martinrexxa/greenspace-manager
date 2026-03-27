@@ -1,7 +1,8 @@
+require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const bcrypt = require("bcryptjs");
-const sql = require("mssql");
+const { Pool } = require("pg");
 const cors = require("cors");
 
 const app = express();
@@ -12,166 +13,140 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, "public")));
 
-const dbConfig = {
-    user: "sa",
-    password: "1234",
-    server: "MARTIN\\MARTINREXXA",
-    database: "Sistema_riego",
-    options: { trustServerCertificate: true }
-};
-
+console.log("DATABASE_URL:", process.env.DATABASE_URL);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+   ssl: {
+    rejectUnauthorized: false
+  }
+});
 // ======================
 //        HTML
 // ======================
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "login.html"));
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.get("/dashboard", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
 });
-
 // ======================
 //        LOGIN
 // ======================
 app.post("/api/login", async (req, res) => {
-    const { usuario, contrasena } = req.body;
+  const { usuario, contrasena } = req.body;
 
-    if (!usuario || !contrasena) {
-        return res.json({ success: false, message: "Faltan datos de login" });
+  if (!usuario || !contrasena) {
+    return res.json({ success: false, message: "Faltan datos de login" });
+  }
+
+  try {
+    const result = await pool.query(`
+     SELECT 
+  u.usuario,
+  u.correo,
+  u.estado,
+  r.nombre AS rolnombre,
+  e.nombre AS empleadonombre,
+  e.apellido AS empleadoapellido,
+  u.contrasena_hash
+     FROM usuarios u
+LEFT JOIN roles r ON u.rol_id = r.rol_id
+LEFT JOIN empleados e ON u.empleado_id = e.id_empleado
+WHERE u.usuario = $1
+    `, [usuario]);
+
+    if (result.rows.length === 0) {
+      return res.json({ success: false, message: "Usuario no encontrado" });
     }
 
-    try {
-        const pool = await sql.connect(dbConfig);
+   const user = result.rows[0];
 
-        // ================================
-        //     CONSULTA ARREGLADA
-  const result = await pool.request()
-    .input("usuario", sql.VarChar(50), usuario)
-    .query(`
-        SELECT 
-            u.UsuarioID,
-            u.Usuario,
-            u.Correo,
-            u.Estado,
-            u.FechaRegistro,
-            r.Nombre AS RolNombre,
-            e.Nombre AS EmpleadoNombre,
-            e.Apellido AS EmpleadoApellido,
-            u.ContrasenaHash
-        FROM Usuarios u
-        LEFT JOIN Roles r ON u.RolID = r.RolID
-        LEFT JOIN Empleados e ON u.EmpleadoID = e.ID_empleado
-        WHERE u.Usuario = @usuario
-    `);
+if (!user.estado) {
+  return res.json({ success: false, message: "Usuario inactivo" });
+}
 
+const match = await bcrypt.compare(contrasena, user.contrasena_hash);
 
-        if (result.recordset.length === 0) {
-            return res.json({ success: false, message: "Usuario no encontrado" });
-        }
-
-        const user = result.recordset[0];
-
-        if (user.Estado === 0) {
-            return res.json({ success: false, message: "Usuario inactivo" });
-        }
-
-        const match = await bcrypt.compare(contrasena, user.ContrasenaHash);
-
-        if (!match) {
-            return res.json({ success: false, message: "Contraseña incorrecta" });
-        }
-
-        // Elimino el hash para no mandarlo al frontend
-       return res.json({
-    success: true,
-    message: "Login correcto",
-    redirect: "/dashboard",
-    user: {
-        nombreCompleto: `${user.EmpleadoNombre} ${user.EmpleadoApellido}`,
-        rol: user.RolNombre,
-        correo: user.Correo,
-        usuario: user.Usuario
+    if (!match) {
+      return res.json({ success: false, message: "Contraseña incorrecta" });
     }
+
+    return res.json({
+  success: true,
+  redirect: "/dashboard",
+  user: {
+    nombreCompleto: `${user.empleadonombre} ${user.empleadoapellido}`,
+    rol: user.rolnombre,
+    correo: user.correo,
+    usuario: user.usuario
+  }
 });
 
-
-
-    } catch (err) {
-        console.log("Error en login:", err);
-        return res.status(500).json({ success: false, message: "Error en el servidor" });
-    }
+  } catch (err) {
+    console.log("Error:", err);
+    return res.status(500).json({ success: false, message: "Error en servidor" });
+  }
 });
 
 // ======================
 //      CREAR USUARIO
 // ======================
 app.post("/api/usuarios/create", async (req, res) => {
-    const { nombre, correo, usuario, contrasena, rolID, empleadoID } = req.body;
+  const { nombre, correo, usuario, contrasena, rolID, empleadoID } = req.body;
 
-    if (!nombre || !correo || !usuario || !contrasena || !rolID || !empleadoID) {
-        return res.json({ success: false, message: "Faltan datos obligatorios" });
-    }
+  if (!nombre || !correo || !usuario || !contrasena || !rolID || !empleadoID) {
+    return res.json({ success: false, message: "Faltan datos obligatorios" });
+  }
 
-    try {
-        const hash = await bcrypt.hash(contrasena, 10);
-        const pool = await sql.connect(dbConfig);
+  try {
+    const hash = await bcrypt.hash(contrasena, 10);
 
-        await pool.request()
-            .input("Nombre", sql.VarChar(120), nombre)
-            .input("Correo", sql.VarChar(150), correo)
-            .input("Usuario", sql.VarChar(50), usuario)
-            .input("ContrasenaHash", sql.VarChar(255), hash)
-            .input("Estado", sql.Bit, 1)
-            .input("FechaRegistro", sql.DateTime, new Date())
-            .input("RolID", sql.Int, rolID)
-            .input("EmpleadoID", sql.Int, empleadoID)
-            .query(`
-                INSERT INTO Usuarios
-                (Nombre, Correo, Usuario, ContrasenaHash, Estado, FechaRegistro, RolID, EmpleadoID)
-                VALUES 
-                (@Nombre, @Correo, @Usuario, @ContrasenaHash, @Estado, @FechaRegistro, @RolID, @EmpleadoID)
-        `);
+    await pool.query(
+      `
+      INSERT INTO "Usuarios"
+      ("Nombre","Correo","Usuario","ContrasenaHash","Estado","FechaRegistro","RolID","EmpleadoID")
+      VALUES ($1,$2,$3,$4,true,NOW(),$5,$6)
+      `,
+      [nombre, correo, usuario, hash, rolID, empleadoID]
+    );
 
-        return res.json({ success: true, message: "Usuario creado correctamente" });
+    return res.json({ success: true, message: "Usuario creado correctamente" });
 
-    } catch (err) {
-        console.log("Error al crear usuario:", err);
-        return res.status(500).json({ success: false, message: "Error en el servidor" });
-    }
+  } catch (err) {
+    console.log("Error al crear usuario:", err);
+    return res.status(500).json({ success: false, message: "Error en el servidor" });
+  }
 });
 
 // ======================
 //      ROLES
 // ======================
 app.get("/api/roles", async (req, res) => {
-    try {
-        const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query(`SELECT RolID, Nombre FROM Roles`);
-        res.json({ success: true, roles: result.recordset });
+  try {
+    const result = await pool.query(`SELECT "RolID","Nombre" FROM "Roles"`);
+    res.json({ success: true, roles: result.rows });
 
-    } catch (err) {
-        res.status(500).json({ success: false, message: "Error cargando roles" });
-    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error cargando roles" });
+  }
 });
 
 // ======================
 //     EMPLEADOS
 // ======================
 app.get("/api/empleados", async (req, res) => {
-    try {
-        const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query(`
-            SELECT ID_empleado, Nombre, Apellido FROM Empleados
-        `);
-        res.json({ success: true, empleados: result.recordset });
+  try {
+    const result = await pool.query(
+      `SELECT "ID_empleado","Nombre","Apellido" FROM "Empleados"`
+    );
+    res.json({ success: true, empleados: result.rows });
 
-    } catch (err) {
-        res.status(500).json({ success: false, message: "Error cargando empleados" });
-    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error cargando empleados" });
+  }
 });
 
-// ======================
 app.listen(3000, () => {
-    console.log("🔥 Servidor corriendo en http://localhost:3000");
+  console.log("🔥 Servidor corriendo en http://localhost:3000");
 });

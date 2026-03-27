@@ -414,7 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const user = JSON.parse(localStorage.getItem("usuarioData"));
 
   if (!user || !user.nombreCompleto || !user.rol) {
-    window.location.replace("login.html");
+    window.location.replace("/");
     return;
   }
 
@@ -439,7 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 🚫 SIN SESIÓN → LOGIN (SIN BACK)
     if (!user || !user.nombreCompleto || !user.rol) {
-      window.location.replace("login.html");
+      window.location.replace("/");
       return;
     }
 
@@ -469,7 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 🚪 LOGOUT REAL (NO BACK)
   document.getElementById("logout-btn").addEventListener("click", () => {
     localStorage.clear();
-    window.location.replace("login.html");
+    window.location.replace("/");
   });
 
   // ⛔ BLOQUEAR BOTÓN ATRÁS

@@ -261,7 +261,7 @@
 
 // 🚫 SI NO HAY SESIÓN → LOGIN
 if (!user || !user.nombreCompleto || !user.rol) {
-  window.location.replace("login.html");
+  window.location.replace("/");
   return;
 }
 
@@ -480,7 +480,7 @@ if (user) {
     });
     document.getElementById("logout-btn").addEventListener("click", () => {
   localStorage.clear();
-  window.location.replace("login.html");
+  window.location.replace("/");
 });
 history.pushState(null, null, location.href);
 

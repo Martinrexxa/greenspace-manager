@@ -314,7 +314,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Si no hay sesión → login
   if (!user || !user.nombreCompleto || !user.rol) {
-    window.location.replace("login.html");
+    window.location.replace("/");
     return;
   }
 
@@ -520,7 +520,7 @@ const logoutBtn = document.getElementById("logout-btn");
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
     localStorage.clear();
-    window.location.replace("login.html");
+    window.location.replace("/");
   });
 }
 
